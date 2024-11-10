@@ -28,18 +28,27 @@ function renderTasks() {
 
     lists[currentList]?.forEach((task, index) => {
         const taskItem = document.createElement("li");
-        taskItem.className = "task";
-        if (task.completed) taskItem.classList.add("completed");
+        taskItem.className = `task ${task.completed ? 'completed' : ''}`;
 
         taskItem.innerHTML = `
             <span class="task-text">${task.text}</span>
-            <button class="edit-btn" onclick="editTask(${index})">✎</button>
-            <button class="delete-btn" onclick="deleteTask(${index})">🗑</button>
-            <input type="checkbox" onclick="toggleComplete(${index})" ${task.completed ? "checked" : ""}>
+            <button onclick="toggleOptionsMenu(${index})">⋮</button>
+            <div class="task-options" id="options-${index}">
+                <button onclick="editTask(${index})">Edit</button>
+                <button onclick="deleteTask(${index})">Delete</button>
+                <button onclick="toggleComplete(${index})">
+                    ${task.completed ? 'Undo' : 'Complete'}
+                </button>
+            </div>
         `;
 
         taskList.appendChild(taskItem);
     });
+}
+
+function toggleOptionsMenu(index) {
+    const menu = document.getElementById(`options-${index}`);
+    menu.classList.toggle("open");
 }
 
 function editTask(index) {
@@ -81,6 +90,7 @@ function renderLists() {
     Object.keys(lists).forEach(listName => {
         const listItem = document.createElement("li");
         listItem.textContent = listName;
+        listItem.classList.toggle("active", listName === currentList);
         listItem.onclick = () => {
             currentList = listName;
             document.getElementById("current-list-title").textContent = listName;
