@@ -3,15 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To-Do List</title>
+    <title>Advanced To-Do List</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app">
-        <h1>My To-Do List</h1>
-        <input type="text" id="task-input" placeholder="Add a new task">
-        <button id="add-task-btn">Add Task</button>
-        <ul id="task-list"></ul>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>My Lists</h2>
+            <ul id="list-menu">
+                <!-- List items will go here -->
+            </ul>
+            <input type="text" id="list-input" placeholder="New list name">
+            <button id="add-list-btn">Add List</button>
+        </aside>
+        <main class="main-content">
+            <h1 id="current-list-title">My To-Do List</h1>
+            <div class="task-controls">
+                <input type="text" id="task-input" placeholder="Add a new task">
+                <button id="add-task-btn">Add Task</button>
+            </div>
+            <ul id="task-list"></ul>
+            <div class="export-import">
+                <button id="export-btn">Export</button>
+                <input type="file" id="import-file" accept=".json">
+            </div>
+        </main>
     </div>
     <script src="script.js"></script>
 </body>
