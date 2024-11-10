@@ -1,130 +1,86 @@
 let lists = {};
+let folders = {};
+let currentFolder = null;
 let currentList = "Default";
 
 document.getElementById("add-task-btn").addEventListener("click", addTask);
-document.getElementById("add-list-btn").addEventListener("click", addList);
+document.getElementById("add-folder-btn").addEventListener("click", addFolder);
 document.getElementById("export-btn").addEventListener("click", exportData);
 document.getElementById("import-file").addEventListener("change", importData);
 
-function addTask() {
-    const taskInput = document.getElementById("task-input");
-    const taskText = taskInput.value.trim();
+function addFolder() {
+    const folderInput = document.getElementById("folder-input");
+    const folderName = folderInput.value.trim();
+    if (folderName === "") return alert("Please enter a folder name.");
+    if (folders[folderName]) return alert("Folder already exists.");
 
-    if (taskText === "") {
-        alert("Please enter a task.");
-        return;
-    }
-
-    if (!lists[currentList]) lists[currentList] = [];
-    lists[currentList].push({ text: taskText, completed: false });
-
-    taskInput.value = "";
-    renderTasks();
+    folders[folderName] = {};
+    currentFolder = folderName;
+    renderFolders();
 }
 
-function renderTasks() {
-    const taskList = document.getElementById("task-list");
-    taskList.innerHTML = "";
+function renderFolders() {
+    const foldersEl = document.getElementById("folders");
+    foldersEl.innerHTML = "";
 
-    lists[currentList]?.forEach((task, index) => {
-        const taskItem = document.createElement("li");
-        taskItem.className = `task ${task.completed ? 'completed' : ''}`;
-
-        taskItem.innerHTML = `
-            <span class="task-text">${task.text}</span>
-            <button onclick="toggleOptionsMenu(${index})">⋮</button>
-            <div class="task-options" id="options-${index}">
-                <button onclick="editTask(${index})">Edit</button>
-                <button onclick="deleteTask(${index})">Delete</button>
-                <button onclick="toggleComplete(${index})">
-                    ${task.completed ? 'Undo' : 'Complete'}
-                </button>
-            </div>
+    for (const folderName in folders) {
+        const folderItem = document.createElement("li");
+        folderItem.className = "folder";
+        folderItem.innerHTML = `
+            <span class="folder-title">${folderName}</span>
+            <button onclick="deleteFolder('${folderName}')">❌</button>
         `;
-
-        taskList.appendChild(taskItem);
-    });
+        folderItem.onclick = () => {
+            currentFolder = folderName;
+            renderLists();
+        };
+        foldersEl.appendChild(folderItem);
+    }
 }
 
-function toggleOptionsMenu(index) {
-    const menu = document.getElementById(`options-${index}`);
-    menu.classList.toggle("open");
-}
-
-function editTask(index) {
-    const newText = prompt("Edit your task:", lists[currentList][index].text);
-    if (newText !== null) lists[currentList][index].text = newText;
-    renderTasks();
-}
-
-function deleteTask(index) {
-    lists[currentList].splice(index, 1);
-    renderTasks();
-}
-
-function toggleComplete(index) {
-    lists[currentList][index].completed = !lists[currentList][index].completed;
-    renderTasks();
+function deleteFolder(folderName) {
+    delete folders[folderName];
+    currentFolder = null;
+    renderFolders();
+    renderLists();
 }
 
 function addList() {
     const listInput = document.getElementById("list-input");
     const listName = listInput.value.trim();
+    const emoji = prompt("Choose an emoji for this list:");
+    const listTitle = emoji ? `${emoji} ${listName}` : listName;
 
-    if (listName === "" || lists[listName]) {
-        alert("Enter a valid, unique list name.");
-        return;
-    }
-
-    lists[listName] = [];
-    listInput.value = "";
-    currentList = listName;
+    if (!folders[currentFolder]) return alert("Please select a folder.");
+    folders[currentFolder][listName] = [];
     renderLists();
-    renderTasks();
 }
 
 function renderLists() {
     const listMenu = document.getElementById("list-menu");
     listMenu.innerHTML = "";
 
-    Object.keys(lists).forEach(listName => {
-        const listItem = document.createElement("li");
-        listItem.textContent = listName;
-        listItem.classList.toggle("active", listName === currentList);
-        listItem.onclick = () => {
-            currentList = listName;
-            document.getElementById("current-list-title").textContent = listName;
-            renderTasks();
-        };
-        listMenu.appendChild(listItem);
-    });
+    if (currentFolder && folders[currentFolder]) {
+        for (const listName in folders[currentFolder]) {
+            const listItem = document.createElement("li");
+            listItem.className = "list";
+            listItem.innerHTML = `
+                <span>${listName}</span>
+                <button onclick="openListOptions('${listName}')">⚙️</button>
+            `;
+            listMenu.appendChild(listItem);
+        }
+    }
 }
 
-function exportData() {
-    const dataStr = JSON.stringify(lists);
-    const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
-    const exportFile = document.createElement("a");
-    exportFile.href = dataUri;
-    exportFile.download = "todo-lists.json";
-    exportFile.click();
+function openListOptions(listName) {
+    const confirm = window.confirm(`Delete the list '${listName}'?`);
+    if (confirm) deleteList(listName);
 }
 
-function importData(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const importedData = JSON.parse(e.target.result);
-        lists = importedData;
-        currentList = Object.keys(lists)[0] || "Default";
-        renderLists();
-        renderTasks();
-    };
-    reader.readAsText(file);
+function deleteList(listName) {
+    delete folders[currentFolder][listName];
+    renderLists();
 }
 
-// Initialize with a default list
-lists["Default"] = [];
-renderLists();
-renderTasks();
+// Implement task handling functions similarly to lists, and then add import/export as shown earlier.
